@@ -143,3 +143,98 @@ pheatmap(
 dev.off()
 
 
+
+# ============================================================
+# DIFFERENTIAL GENE EXPRESSION ANALYSIS
+# ============================================================
+
+# Load packages for statistical analysis and gene annotation
+library(limma)
+library(AnnotationDbi)
+library(hgu133plus2.db)
+
+# Create design matrix for Control and Alzheimer groups
+design <- model.matrix(~ 0 + group)
+colnames(design) <- levels(group)
+
+# Define comparison: Alzheimer vs Control
+contrast_matrix <- makeContrasts(
+  Alzheimer - Control,
+  levels = design
+)
+
+# Fit linear model and apply empirical Bayes statistics
+fit <- lmFit(expr, design)
+fit <- contrasts.fit(fit, contrast_matrix)
+fit <- eBayes(fit)
+
+# Extract differential expression results
+# Adjust p-values using the Benjamini-Hochberg method
+results <- topTable(
+  fit,
+  coef = 1,
+  number = Inf,
+  adjust.method = "BH",
+  sort.by = "P"
+)
+
+# Store probe identifiers as a separate column
+results$Probe_ID <- rownames(results)
+
+# Map probe IDs to gene symbols
+results$Gene_Symbol <- mapIds(
+  hgu133plus2.db,
+  keys = results$Probe_ID,
+  column = "SYMBOL",
+  keytype = "PROBEID",
+  multiVals = "first"
+)
+
+# Add full gene names using the annotation database
+results$Gene_Name <- mapIds(
+  hgu133plus2.db,
+  keys = results$Probe_ID,
+  column = "GENENAME",
+  keytype = "PROBEID",
+  multiVals = "first"
+)
+
+# Select significant probes using adjusted p-value < 0.05
+significant_results <- results[
+  !is.na(results$adj.P.Val) &
+    results$adj.P.Val < 0.05,
+]
+
+# Save complete and significant results as CSV files
+write.csv(
+  results,
+  "results/All_Results.csv",
+  row.names = FALSE
+)
+
+write.csv(
+  significant_results,
+  "results/Significant_Probes.csv",
+  row.names = FALSE
+)
+
+# Display summary of differential expression results
+cat("Total probes:", nrow(results), "\n")
+cat("Significant probes:", nrow(significant_results), "\n")
+
+# Count upregulated and downregulated significant probes
+cat("Upregulated:",
+    sum(significant_results$logFC > 0), "\n")
+cat("Downregulated:",
+    sum(significant_results$logFC < 0), "\n")
+
+# Display the top 10 probes with their statistical results
+print(
+  head(
+    results[, c(
+      "Probe_ID", "Gene_Symbol",
+      "logFC", "adj.P.Val"
+    )],
+    10
+  )
+)
