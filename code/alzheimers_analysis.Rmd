@@ -1,0 +1,68 @@
+---
+title: "Gene Expression Analysis in Alzheimer's Disease"
+author: "2021/ICT/66"
+output: html_document
+---
+
+# Introduction
+
+This project analyzes gene expression differences between Alzheimer's disease patients and healthy controls using the GSE5281_EC dataset.
+
+# Data Loading and Analysis
+
+```{r analysis, message=FALSE, warning=FALSE}
+source("code/alzheimers_analysis.R")
+```
+
+# Results
+
+The analysis compares 9 Alzheimer's disease samples and 12 control samples using 54,675 microarray probes.
+
+
+
+
+## Expression Boxplot
+
+```{r show-boxplot, echo=FALSE, out.width='90%'}
+knitr::include_graphics(
+  normalizePath("figures/01_Expression_Boxplot.png")
+)
+```
+
+## PCA Plot
+
+```{r show-pca, echo=FALSE, out.width='90%'}
+knitr::include_graphics(
+  normalizePath("figures/02_PCA_Plot.png")
+)
+```
+
+## Sample Distance Heatmap
+
+```{r show-distance, echo=FALSE, out.width='90%'}
+knitr::include_graphics(
+  normalizePath("figures/03_Sample_Distance_Heatmap.png")
+)
+```
+
+## Volcano Plot
+
+```{r show-volcano, echo=FALSE, out.width='90%'}
+knitr::include_graphics(
+  normalizePath("figures/04_Volcano_Plot.png")
+)
+```
+
+## Top 30 Heatmap
+
+```{r show-heatmap, echo=FALSE, out.width='90%'}
+knitr::include_graphics(
+  normalizePath("figures/05_Top30_Heatmap.png")
+)
+```
+
+# Conclusion
+
+The analysis identified 11,624 statistically significant probes using the Benjamini-Hochberg adjusted p-value threshold of 0.05.
+
+
