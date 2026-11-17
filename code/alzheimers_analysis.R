@@ -238,3 +238,106 @@ print(
     10
   )
 )
+
+
+
+# ============================================================
+# DIFFERENTIAL EXPRESSION VISUALIZATION
+# ============================================================
+
+# Classify probes based on adjusted p-value and logFC
+# Positive logFC = Upregulated, Negative logFC = Downregulated
+results$Regulation <- ifelse(
+  results$adj.P.Val < 0.05 & results$logFC > 0,
+  "Upregulated",
+  ifelse(
+    results$adj.P.Val < 0.05 & results$logFC < 0,
+    "Downregulated",
+    "Not Significant"
+  )
+)
+
+# Create a volcano plot to visualize differential expression
+# X-axis shows log2 fold change
+# Y-axis shows statistical significance (-log10 adjusted p-value)
+volcano_plot <- ggplot(
+  results,
+  aes(
+    x = logFC,
+    y = -log10(pmax(adj.P.Val, .Machine$double.xmin)),
+    color = Regulation
+  )
+) +
+  geom_point(alpha = 0.5, size = 1) +
+  
+  # Assign colors based on probe regulation
+  scale_color_manual(
+    values = c(
+      "Upregulated" = "red",
+      "Downregulated" = "blue",
+      "Not Significant" = "grey"
+    )
+  ) +
+  
+  # Add a dashed line representing the significance threshold
+  geom_hline(
+    yintercept = -log10(0.05),
+    linetype = "dashed"
+  ) +
+  labs(
+    title = "Volcano Plot: Alzheimer's vs Control",
+    x = "Log2 Fold Change",
+    y = "-Log10 Adjusted P-value"
+  ) +
+  theme_minimal()
+
+# Save the volcano plot as a PNG image
+ggsave(
+  "figures/04_Volcano_Plot.png",
+  plot = volcano_plot,
+  width = 8,
+  height = 6
+)
+
+# Select the top 30 statistically significant probes
+top30 <- head(significant_results$Probe_ID, 30)
+
+# Extract expression values for the selected probes
+heatmap_expr <- expr[top30, , drop = FALSE]
+
+# Retrieve gene symbols for the selected probes
+top30_symbols <- results$Gene_Symbol[
+  match(top30, results$Probe_ID)
+]
+
+# Use gene symbols as labels, with probe IDs for identification
+# If a gene symbol is missing, use the probe ID instead
+top30_labels <- ifelse(
+  is.na(top30_symbols) | top30_symbols == "",
+  top30,
+  paste0(top30_symbols, " (", top30, ")")
+)
+
+rownames(heatmap_expr) <- top30_labels
+
+# Generate a heatmap of the top 30 significant probes
+png(
+  "figures/05_Top30_Heatmap.png",
+  width = 1100,
+  height = 1000
+)
+
+# Standardize expression values by row for comparison
+# Add sample group labels to identify Control and Alzheimer samples
+pheatmap(
+  heatmap_expr,
+  scale = "row",
+  annotation_col = sample_annotation,
+  main = "Top 30 Differentially Expressed Probes",
+  border_color = NA
+)
+
+# Close the graphics device and save the heatmap
+dev.off()
+
+
