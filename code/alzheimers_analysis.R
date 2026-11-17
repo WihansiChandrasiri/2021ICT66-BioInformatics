@@ -123,23 +123,33 @@ colnames(sample_distance) <- colnames(expr)
 sample_annotation <- data.frame(Group = group)
 rownames(sample_annotation) <- colnames(expr)
 
-# Open a PNG graphics device to save the heatmap
+
+# ------------------------------------------------------------
+# SAMPLE DISTANCE HEATMAP
+# ------------------------------------------------------------
+
+# Create sample distance heatmap
+heatmap_plot <- pheatmap(
+  sample_distance,
+  annotation_row = sample_annotation,
+  annotation_col = sample_annotation,
+  main = "Sample-to-Sample Distance Heatmap",
+  border_color = NA,
+  silent = TRUE
+)
+
+# Open PNG graphics device
 png(
   "figures/03_Sample_Distance_Heatmap.png",
   width = 1100,
   height = 1000
 )
 
-# Generate a heatmap showing similarities between samples
-# Add Control/Alzheimer group labels to rows and columns
-pheatmap(
-  sample_distance,
-  annotation_row = sample_annotation,
-  annotation_col = sample_annotation,
-  main = "Sample-to-Sample Distance Heatmap",
-  border_color = NA
-)
+# Explicitly draw the heatmap using grid graphics
+grid::grid.newpage()
+grid::grid.draw(heatmap_plot$gtable)
 
+# Close graphics device
 dev.off()
 
 
@@ -359,3 +369,8 @@ print(data.frame(
 stopifnot(all(file.exists(expected_files)))
 
 cat("\nAll analysis outputs verified successfully.\n")
+
+
+
+
+
