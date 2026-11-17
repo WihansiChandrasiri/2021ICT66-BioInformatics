@@ -341,3 +341,21 @@ pheatmap(
 dev.off()
 
 
+expected_files <- c(
+  "figures/01_Expression_Boxplot.png",
+  "figures/02_PCA_Plot.png",
+  "figures/03_Sample_Distance_Heatmap.png",
+  "figures/04_Volcano_Plot.png",
+  "figures/05_Top30_Heatmap.png",
+  "results/All_Results.csv",
+  "results/Significant_Probes.csv"
+)
+
+print(data.frame(
+  File = expected_files,
+  Exists = file.exists(expected_files)
+))
+
+stopifnot(all(file.exists(expected_files)))
+
+cat("\nAll analysis outputs verified successfully.\n")
