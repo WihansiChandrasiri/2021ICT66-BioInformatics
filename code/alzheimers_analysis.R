@@ -123,23 +123,33 @@ colnames(sample_distance) <- colnames(expr)
 sample_annotation <- data.frame(Group = group)
 rownames(sample_annotation) <- colnames(expr)
 
-# Open a PNG graphics device to save the heatmap
+
+# ------------------------------------------------------------
+# SAMPLE DISTANCE HEATMAP
+# ------------------------------------------------------------
+
+# Create sample distance heatmap
+heatmap_plot <- pheatmap(
+  sample_distance,
+  annotation_row = sample_annotation,
+  annotation_col = sample_annotation,
+  main = "Sample-to-Sample Distance Heatmap",
+  border_color = NA,
+  silent = TRUE
+)
+
+# Open PNG graphics device
 png(
   "figures/03_Sample_Distance_Heatmap.png",
   width = 1100,
   height = 1000
 )
 
-# Generate a heatmap showing similarities between samples
-# Add Control/Alzheimer group labels to rows and columns
-pheatmap(
-  sample_distance,
-  annotation_row = sample_annotation,
-  annotation_col = sample_annotation,
-  main = "Sample-to-Sample Distance Heatmap",
-  border_color = NA
-)
+# Explicitly draw the heatmap using grid graphics
+grid::grid.newpage()
+grid::grid.draw(heatmap_plot$gtable)
 
+# Close graphics device
 dev.off()
 
 
@@ -320,26 +330,31 @@ top30_labels <- ifelse(
 
 rownames(heatmap_expr) <- top30_labels
 
-# Generate a heatmap of the top 30 significant probes
+
+
+# Create the heatmap without automatically drawing it
+top30_heatmap <- pheatmap(
+  heatmap_expr,
+  scale = "row",
+  annotation_col = sample_annotation,
+  main = "Top 30 Differentially Expressed Probes",
+  border_color = NA,
+  silent = TRUE
+)
+
+# Open PNG graphics device
 png(
   "figures/05_Top30_Heatmap.png",
   width = 1100,
   height = 1000
 )
 
-# Standardize expression values by row for comparison
-# Add sample group labels to identify Control and Alzheimer samples
-pheatmap(
-  heatmap_expr,
-  scale = "row",
-  annotation_col = sample_annotation,
-  main = "Top 30 Differentially Expressed Probes",
-  border_color = NA
-)
+# Explicitly draw the heatmap
+grid::grid.newpage()
+grid::grid.draw(top30_heatmap$gtable)
 
-# Close the graphics device and save the heatmap
+# Close the graphics device and save the image
 dev.off()
-
 
 expected_files <- c(
   "figures/01_Expression_Boxplot.png",
@@ -359,3 +374,8 @@ print(data.frame(
 stopifnot(all(file.exists(expected_files)))
 
 cat("\nAll analysis outputs verified successfully.\n")
+
+
+
+
+
